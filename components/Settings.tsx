@@ -112,8 +112,11 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser }) => {
 
   const confirmLogout = () => {
     setShowLogoutModal(false);
-    showToast("Sessão encerrada com segurança.", "info");
-    // Aqui iria a lógica de redirecionamento real
+    // Limpa ambos os storages para garantir logout completo
+    localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('auth_token');
+    // Força recarregamento para resetar estados do App.tsx e voltar ao Login
+    window.location.reload();
   };
 
   return (
