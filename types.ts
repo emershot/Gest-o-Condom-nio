@@ -1,3 +1,18 @@
+export type Role = 'admin' | 'resident';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  avatar: string;
+  unit?: string; // Obrigatório se role === 'resident'
+  block?: string;
+  phone?: string;
+  bio?: string;
+  token?: string; // JWT simulado
+}
+
 export interface ActivityItem {
   id: number;
   type: string;

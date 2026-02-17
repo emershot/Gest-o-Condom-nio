@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { IMAGES } from '../constants';
 import Modal from './Modal';
 import Toast from './Toast';
-import { ToastMessage } from '../types';
+import { ToastMessage, User } from '../types';
 
 interface LoginProps {
-  onLogin: (remember: boolean) => void;
+  onLogin: (user: User, remember: boolean) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -17,7 +17,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Estados de Funcionalidades Extras (Modais e Toasts)
+  // Estados de Funcionalidades Extras
   const [isForgotOpen, setIsForgotOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -39,42 +39,67 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
     setIsLoading(true);
 
-    // Validação básica de formato antes de enviar
+    // Validação básica de frontend
     if (!email.includes('@') || !email.includes('.')) {
         setError('Por favor, insira um endereço de e-mail válido.');
         setIsLoading(false);
         return;
     }
 
-    // Simulação de delay de rede e validação de backend
+    // SIMULAÇÃO DE BACKEND (Autenticação)
+    // Em produção, isso seria um fetch('/api/auth/login')
     setTimeout(() => {
+      // Perfil SÍNDICO (ADMIN)
       if (email === 'admin@condoflow.com' && password === '123456') {
-        onLogin(rememberMe);
-      } else {
-        setError('Credenciais inválidas. Tente admin@condoflow.com / 123456');
-        setPassword(''); // Limpa a senha por segurança em falhas
+        const adminUser: User = {
+          id: 'adm-001',
+          name: 'Sarah Johnson',
+          email: 'admin@condoflow.com',
+          role: 'admin',
+          avatar: IMAGES.USER_AVATAR,
+          bio: 'Gestora Profissional',
+          token: 'jwt-token-admin-mock' // Simulando JWT
+        };
+        onLogin(adminUser, rememberMe);
+      } 
+      // Perfil MORADOR (RESIDENT)
+      else if (email === 'morador@condoflow.com' && password === '123456') {
+        const residentUser: User = {
+          id: 'res-202b',
+          name: 'Marcus Morador',
+          email: 'morador@condoflow.com',
+          role: 'resident',
+          avatar: IMAGES.RESIDENT_MARCUS,
+          unit: '202-B',
+          block: 'Bloco B',
+          token: 'jwt-token-resident-mock' // Simulando JWT
+        };
+        onLogin(residentUser, rememberMe);
+      } 
+      else {
+        // Auditoria de falha de login seria registrada aqui no backend
+        setError('Credenciais inválidas. Tente admin@condoflow.com ou morador@condoflow.com');
+        setPassword('');
         setIsLoading(false);
       }
-    }, 1500);
+    }, 1200);
   };
 
   const handleForgotSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsForgotOpen(false);
-    // Simula envio de email
-    showToast(`Instruções de recuperação enviadas para ${recoveryEmail}`, 'success');
+    showToast(`Instruções enviadas para ${recoveryEmail} (se existir na base).`, 'success');
     setRecoveryEmail('');
   };
 
   const handleContactSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       setIsContactOpen(false);
-      showToast('Sua solicitação foi enviada à administração.', 'success');
+      showToast('Solicitação enviada para a administração.', 'success');
   };
 
   return (
     <div className="min-h-screen flex bg-white dark:bg-[#111621] relative">
-      {/* Toast Container para a tela de Login */}
       <div className="fixed bottom-0 right-0 z-[60] pointer-events-none">
         {toasts.map(toast => (
           <div key={toast.id} className="pointer-events-auto">
@@ -83,7 +108,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         ))}
       </div>
 
-      {/* Lado Esquerdo - Branding / Imagem */}
+      {/* Lado Esquerdo - Visual Institucional */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900">
         <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10"></div>
         <img 
@@ -97,11 +122,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             CondoFlow
           </div>
           <div>
-            <h2 className="text-4xl font-bold mb-4 leading-tight">Gestão inteligente para condomínios modernos.</h2>
-            <p className="text-lg text-slate-200 max-w-md">Centralize a comunicação, financeiro e operações em uma única plataforma intuitiva.</p>
+            <h2 className="text-4xl font-bold mb-4 leading-tight">Gestão inteligente e segura.</h2>
+            <p className="text-lg text-slate-200 max-w-md">Acesso restrito a moradores e administração autorizada.</p>
           </div>
           <div className="text-sm text-slate-400">
-            © 2024 CondoFlow Technologies.
+            © 2024 CondoFlow Technologies. Security First.
           </div>
         </div>
       </div>
@@ -114,17 +139,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                <span className="material-icons">apartment</span>
                CondoFlow
             </div>
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Bem-vindo de volta</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Acesso ao Portal</h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Por favor, insira suas credenciais para acessar o painel.
+              Ambiente seguro para gestão condominial.
             </p>
+            
+            <div className="mt-4 p-3 bg-slate-100 dark:bg-slate-800 rounded text-xs text-slate-500 border border-slate-200 dark:border-slate-700">
+              <p className="mb-1"><strong className="text-slate-700 dark:text-slate-300">Síndico:</strong> admin@condoflow.com / 123456</p>
+              <p><strong className="text-slate-700 dark:text-slate-300">Morador:</strong> morador@condoflow.com / 123456</p>
+            </div>
           </div>
 
           <div className="mt-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  E-mail corporativo
+                  E-mail
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -140,7 +170,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="block w-full pl-10 rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm py-2.5 transition-shadow"
-                    placeholder="seu@email.com"
+                    placeholder="nome@dominio.com"
                   />
                 </div>
               </div>
@@ -189,7 +219,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded cursor-pointer"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-                    Lembrar-me
+                    Manter conectado
                   </label>
                 </div>
 
@@ -197,7 +227,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   <button 
                     type="button"
                     onClick={() => {
-                        setRecoveryEmail(email); // Preenche automaticamente se já digitou algo
+                        setRecoveryEmail(email);
                         setIsForgotOpen(true);
                     }}
                     className="font-medium text-primary hover:text-primary-dark hover:underline outline-none focus:underline"
@@ -229,53 +259,37 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   {isLoading ? (
                     <span className="material-icons animate-spin text-[20px]">refresh</span>
                   ) : (
-                    'Entrar na Plataforma'
+                    'Acessar Painel'
                   )}
                 </button>
               </div>
             </form>
 
             <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white dark:bg-[#111621] px-2 text-slate-500">
-                    Ainda não tem acesso?
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 text-center">
-                <button 
-                    type="button"
-                    onClick={() => setIsContactOpen(true)}
-                    className="font-medium text-primary hover:text-primary-dark hover:underline outline-none focus:underline"
-                >
-                    Fale com o Administrador
-                </button>
-              </div>
+               <div className="text-center">
+                 <p className="text-xs text-slate-400">
+                    Ao entrar, você concorda com nossos Termos de Uso e Política de Privacidade.
+                 </p>
+               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal de Recuperação de Senha */}
       <Modal
         isOpen={isForgotOpen}
         onClose={() => setIsForgotOpen(false)}
-        title="Recuperação de Senha"
+        title="Recuperação de Acesso"
         onSubmit={handleForgotSubmit}
-        submitLabel="Enviar Instruções"
+        submitLabel="Enviar Link"
       >
         <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-                Insira o e-mail associado à sua conta e enviaremos um link para redefinir sua senha.
+                Por segurança, enviaremos um link temporário para o e-mail cadastrado na unidade.
             </p>
             <div>
                 <label htmlFor="recovery-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  E-mail cadastrado
+                  E-mail oficial
                 </label>
                 <input
                     id="recovery-email"
@@ -284,35 +298,30 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     value={recoveryEmail}
                     onChange={(e) => setRecoveryEmail(e.target.value)}
                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="seu@email.com"
+                    placeholder="ex: nome@email.com"
                 />
             </div>
         </div>
       </Modal>
 
-      {/* Modal de Contato com Admin */}
       <Modal
         isOpen={isContactOpen}
         onClose={() => setIsContactOpen(false)}
-        title="Solicitar Acesso"
+        title="Primeiro Acesso"
         onSubmit={handleContactSubmit}
-        submitLabel="Enviar Solicitação"
+        submitLabel="Solicitar Cadastro"
       >
         <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-                Ainda não tem conta? Preencha seus dados abaixo para que a administração do condomínio possa verificar e liberar seu acesso.
+                Para garantir a segurança do condomínio, novos cadastros passam por aprovação da administração.
             </p>
             <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
                 <input type="text" required className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-sm focus:ring-2 focus:ring-primary outline-none" />
             </div>
             <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Unidade / Bloco</label>
-                <input type="text" required placeholder="Ex: 204 - Bloco A" className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-sm focus:ring-2 focus:ring-primary outline-none" />
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone / Celular</label>
-                <input type="tel" required className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-sm focus:ring-2 focus:ring-primary outline-none" />
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Unidade</label>
+                <input type="text" required placeholder="Ex: 204 Bloco A" className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-sm focus:ring-2 focus:ring-primary outline-none" />
             </div>
         </div>
       </Modal>

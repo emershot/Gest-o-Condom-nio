@@ -1,23 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MOCK_NOTIFICATIONS } from '../constants';
-import { NotificationItem } from '../types';
+import { NotificationItem, User } from '../types';
 import Modal from './Modal';
-
-interface UserData {
-    name: string;
-}
 
 interface HeaderProps {
   toggleSidebar: () => void;
   title?: string;
   subtitle?: string;
   showBreadcrumbs?: boolean;
-  user: UserData;
+  user: User;
 }
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar, title, subtitle, showBreadcrumbs, user }) => {
-  // Notification State
-  const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_NOTIFICATIONS as NotificationItem[]);
+  // Notification State & Filtering
+  const isAdmin = user.role === 'admin';
+  
+  // FILTRO DE NOTIFICAÇÕES (LGPD)
+  // Admin: Vê tudo.
+  // Morador: Vê infos gerais, manutenção, e alertas APENAS se forem genéricos ou da própria unidade.
+  // Mock Data ID 2: "Pagamento em Atraso - Unidade 102". Se Marcus é 202-B, ele não pode ver isso.
+  const filteredNotifications = isAdmin 
+    ? MOCK_NOTIFICATIONS 
+    : MOCK_NOTIFICATIONS.filter(n => {
+        // Se for alerta de atraso e não for da unidade do usuário, ocultar.
+        if (n.type === 'alert' && n.title.includes('Pagamento')) return false; 
+        return true;
+    });
+
+  const [notifications, setNotifications] = useState<NotificationItem[]>(filteredNotifications as NotificationItem[]);
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, title, subtitle, showBre
   };
 
   // Extrai o primeiro nome para saudação
-  const firstName = user.name.split(' ')[0];
+  const firstName = user.name ? user.name.split(' ')[0] : 'Usuário';
 
   return (
     <>

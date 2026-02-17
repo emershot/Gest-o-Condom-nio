@@ -1,21 +1,17 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-interface UserData {
-    name: string;
-    role: string;
-    avatar: string;
-}
+import { User } from '../types';
 
 interface SidebarProps {
   isOpen: boolean;
   closeMobileSidebar: () => void;
-  user: UserData;
+  user: User;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeMobileSidebar, user }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isAdmin = user.role === 'admin';
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -23,7 +19,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeMobileSidebar, user }) =
   };
 
   const isActive = (path: string) => {
-    // Verifica se o path atual corresponde ao botão
     if (path === '/' && location.pathname === '/') return true;
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
@@ -79,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeMobileSidebar, user }) =
             className={getButtonClass('/directory')}
           >
             <span className={getIconClass('/directory')}>home_work</span>
-            Unidades
+            {isAdmin ? 'Unidades' : 'Diretório'}
           </button>
           
           <button 
@@ -88,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeMobileSidebar, user }) =
           >
             <span className={getIconClass('/reservations')}>calendar_month</span>
             Reservas
-            <span className="ml-auto bg-primary/20 text-primary text-xs font-bold px-2 py-0.5 rounded-full">2</span>
+            {isAdmin && <span className="ml-auto bg-primary/20 text-primary text-xs font-bold px-2 py-0.5 rounded-full">2</span>}
           </button>
           
           <button 
@@ -106,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeMobileSidebar, user }) =
             className={getButtonClass('/financial')}
           >
             <span className={getIconClass('/financial')}>account_balance_wallet</span>
-            Financeiro
+            {isAdmin ? 'Financeiro' : 'Meus Boletos'}
           </button>
           
           <button 
@@ -115,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeMobileSidebar, user }) =
           >
             <span className={getIconClass('/tickets')}>build</span>
             Chamados
-            <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">2</span>
+            {isAdmin && <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">2</span>}
           </button>
         </nav>
 
@@ -128,7 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeMobileSidebar, user }) =
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.name}</p>
-              <p className="text-xs text-slate-500 truncate">{user.role}</p>
+              <p className="text-xs text-slate-500 truncate">{isAdmin ? 'Síndico(a)' : 'Morador(a)'}</p>
             </div>
             <button 
               onClick={() => handleNav('/settings')}
